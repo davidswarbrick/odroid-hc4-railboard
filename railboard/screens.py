@@ -333,10 +333,12 @@ def render_summary(
 
 def render_health(
     size, fonts: Fonts, health: sysinfo.Health, now: datetime, tick: int, fps: int,
+    offline: bool = False, offline_title: str = "OFFLINE - no data",
 ) -> Image.Image:
     img, draw = _new_frame(size)
     w, h = size
-    top = _header(draw, img, size, fonts, health.hostname or "system", now, tick, fps)
+    title = offline_title if offline else (health.hostname or "system")
+    top = _header(draw, img, size, fonts, title, now, tick, fps)
     row_h = _line_h(fonts.small) + 1
     y = top
 
@@ -347,6 +349,8 @@ def render_health(
             y += row_h
 
     line(f"IP {health.ip}")
+    if offline:
+        line(health.hostname or "")
     for d in health.disks:
         line(f"{d.label} {d.percent}% {sysinfo.human_bytes(d.free)} free")
     bits = []

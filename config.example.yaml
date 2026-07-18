@@ -16,6 +16,11 @@ api:
 # How often to poll the API per station (seconds). 60s => 2 req/min total.
 refresh_seconds: 60
 
+# If nothing has been fetched successfully within this many seconds (e.g. the box
+# loses internet), the display falls back to the health page so you can read its
+# IP and reconnect. Set to 0 to disable the fallback.
+offline_after: 150
+
 # The stations whose boards you want to show.
 # CRS = the 3-letter National Rail station code. Look yours up at
 #   https://www.nationalrail.co.uk/stations_destinations/48541.aspx

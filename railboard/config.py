@@ -22,6 +22,9 @@ DEFAULTS: dict[str, Any] = {
         "timeout": 10,
     },
     "refresh_seconds": 60,
+    # If no station has been fetched successfully within this many seconds, the
+    # display falls back to the health page (so you can read the IP and reconnect).
+    "offline_after": 150,
     # Stations, journeys and the page rotation are defined by the user in
     # config.yaml (see config.example.yaml). Defaults are intentionally empty so
     # nothing station-specific is baked into the code — out of the box only the

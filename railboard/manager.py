@@ -90,7 +90,32 @@ class ScreenManager:
         self.pages = list(cfg.get("pages", ["health"])) or ["health"]
         self.fps = int(cfg["display"].get("fps", 10))
         self.dwell = float(cfg["display"].get("dwell_seconds", 8))
+        self.offline_after = int(cfg.get("offline_after", 150))
         self._tick = 0
+
+    def _offline(self, now: datetime) -> bool:
+        """True if no station has been fetched successfully recently — used to fall
+        back to the health page so the box's IP is visible for reconnecting."""
+        if self.offline_after <= 0:
+            return False  # fallback disabled
+        newest = None
+        for crs in self.cfg.station_crs_list():
+            t = self.store.get(crs).fetched_at
+            if t and (newest is None or t > newest):
+                newest = t
+        if newest is None:
+            return True
+        return (now - newest).total_seconds() > self.offline_after
+
+    def _offline_frame(self, now: datetime):
+        size = (self.display.content_width, self.display.content_height)
+        health = sysinfo.gather(self.cfg.get("disk_paths"))
+        ever = any(self.store.get(c).fetched_at for c in self.cfg.station_crs_list())
+        title = "OFFLINE - no net" if ever else "starting up..."
+        return screens.render_health(
+            size, self.fonts, health, now, self._tick, self.fps,
+            offline=True, offline_title=title,
+        )
 
     # -- page rendering dispatch ----------------------------------------
     def _render_page(self, spec: str, now: datetime):
@@ -180,7 +205,7 @@ class ScreenManager:
                     self.display.render(_blank(self.display), now)
                     stop.wait(1.0)
                     continue
-                frame = self._render_page(spec, now)
+                frame = self._offline_frame(now) if self._offline(now) else self._render_page(spec, now)
                 self.display.render(frame, now)
                 self._tick += 1
                 stop.wait(frame_interval)
