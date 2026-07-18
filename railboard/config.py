@@ -99,6 +99,11 @@ class Config:
         # journeys may reference origins not in the stations list
         for j in self.data.get("journeys", []):
             crs.add(j["origin"])
+        # board/bigboard pages may reference a CRS not otherwise listed
+        for page in self.data.get("pages", []):
+            kind, _, arg = str(page).partition(":")
+            if kind in ("board", "bigboard") and arg:
+                crs.add(arg.upper())
         return sorted(crs)
 
 

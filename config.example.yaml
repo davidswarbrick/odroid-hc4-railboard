@@ -45,17 +45,25 @@ journeys:
     match: any
 
 # Ordered rotation. Each entry is one page. Comment/reorder to taste.
-#   board:<CRS>            full departure board for a station
+#   bigboard:<CRS>        LARGE single-station view, cycles through next departures
+#                         (most readable from across a room)
+#   board:<CRS>           packed full board for a station (smaller text, more trains)
+#   next:<journey id>     platform-mirror of the next matching train (big countdown)
 #   health                system / disk health screen
-#   next:<journey id>     platform-mirror of the next matching train
 #   combo:<id>,<id>       two journeys' next trains on one page
+#
+# Small text on a 128x64 panel is hard to read from a distance — prefer the
+# large `bigboard` and `next` pages, and keep the packed `board` pages for when
+# you want the whole list at once.
 pages:
-  - board:AAA
-  - board:BBB
-  - health
+  - bigboard:AAA
+  - bigboard:BBB
   - next:a_to_x
   - next:b_to_y
-  # - combo:a_to_x,b_to_y            # optional 6th page
+  - health
+  - board:AAA
+  - board:BBB
+  # - combo:a_to_x,b_to_y            # optional combo page
 
 display:
   # --- panel / wiring ---
@@ -68,14 +76,21 @@ display:
   simulate_dir: "./frames"   # where --display simulate writes PNGs
 
   # --- timing / animation ---
-  dwell_seconds: 8      # how long each page is shown
-  fps: 10               # render/animation frames per second (scrolling smoothness)
-  # Path to a TTF for the dot-matrix look. Empty => Pillow's built-in bitmap font.
-  # Good options: a 5x7/pixel font, or "Dot Matrix"/"Px437"/pixel TTFs. See README.
+  dwell_seconds: 8         # how long each page is shown
+  bigboard_sub_dwell: 3.5  # seconds per departure within a bigboard page
+  fps: 10                  # render/animation frames per second (scroll smoothness)
+
+  # --- fonts ---
+  # Path to a TTF for the dot-matrix look. Empty => a system font (DejaVu) if found,
+  # else Pillow's built-in bitmap font. Good options: a 5x7/pixel font, or
+  # "Dot Matrix"/"Px437"/pixel TTFs. See README.
   font_path: ""
+  # Small text on a 128x64 OLED is hard to read from a distance. These are modest
+  # defaults; bump them for a bolder, more readable board (fewer rows fit):
+  #   readable preset -> font_size: 12, header_font_size: 13, big_font_size: 22
   font_size: 10
   header_font_size: 11
-  big_font_size: 16     # used for the countdown on next-train pages
+  big_font_size: 16     # countdown on next-train pages, hero time on bigboard
 
 burn_in:
   orbit: true           # shift whole image within +/- orbit_max px each cycle

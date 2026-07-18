@@ -107,6 +107,15 @@ class ScreenManager:
                 size, self.fonts, entry.board, self.cfg.station_name(crs),
                 now, self._tick, self.fps, _stale_minutes(entry, now),
             )
+        if kind == "bigboard":
+            crs = arg.upper()
+            entry = self.store.get(crs)
+            sub = float(self.cfg["display"].get("bigboard_sub_dwell", 3.5))
+            return screens.render_bigboard(
+                size, self.fonts, entry.board, self.cfg.station_name(crs),
+                now, self._tick, self.fps, sub_dwell=sub,
+                stale_min=_stale_minutes(entry, now),
+            )
         if kind == "next":
             journey = self.cfg.journey(arg)
             if not journey:

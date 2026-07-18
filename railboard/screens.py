@@ -154,6 +154,51 @@ def render_board(
     return img
 
 
+def render_bigboard(
+    size, fonts: Fonts, board: Board | None, station_name: str,
+    now: datetime, tick: int, fps: int, sub_dwell: float = 3.5,
+    stale_min: int | None = None,
+) -> Image.Image:
+    """Large, glanceable single-station view that cycles through the next few
+    departures one at a time (bigger fonts than the packed full board)."""
+    img, draw = _new_frame(size)
+    w, h = size
+    top = _header(draw, img, size, fonts, station_name, now, tick, fps)
+
+    if board is None or not board.departures:
+        msg = "No data" if board is None else "No departures"
+        _center(draw, size, msg, fonts.header, y=top + 6)
+        return img
+
+    deps = board.departures
+    idx = int((tick / max(fps, 1)) / max(sub_dwell, 0.5)) % len(deps)
+    dep = deps[idx]
+
+    big_h = _line_h(fonts.big)
+    dest_h = _line_h(fonts.header)
+    y = top
+
+    # Hero: big scheduled time on the left, platform on the right.
+    draw.text((0, y), dep.std or "--:--", font=fonts.big, fill=255)
+    if dep.platform:
+        plat = f"P{dep.platform}"
+        pw = _text_w(draw, plat, fonts.header)
+        draw.text((w - pw, y + (big_h - dest_h)), plat, font=fonts.header, fill=255)
+    y += big_h
+
+    # Destination, medium weight, scrolls if long.
+    _hscroll(img, draw, 0, y, dep.destination or "?", fonts.header, w, tick, fps)
+    y += dest_h
+
+    # Status + countdown + position indicator.
+    foot = f"{_status_text(dep)} · {countdown_text(dep, now)}"
+    pos = f"{idx + 1}/{len(deps)}"
+    pw = _text_w(draw, pos, fonts.small)
+    draw.text((w - pw, y), pos, font=fonts.small, fill=255)
+    _hscroll(img, draw, 0, y, foot, fonts.small, w - pw - 3, tick, fps)
+    return img
+
+
 def render_next_train(
     size, fonts: Fonts, journey: dict, dep: Departure | None,
     now: datetime, tick: int, fps: int, have_data: bool = True,
