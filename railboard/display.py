@@ -100,7 +100,14 @@ def _make_device(kind: str, disp_cfg: dict[str, Any]):
     if kind == "emulator":
         from luma.emulator.device import pygame  # type: ignore
 
-        return pygame(width=width, height=height, mode="1", frame_rate=60)
+        return pygame(
+            width=width,
+            height=height,
+            mode="1",
+            scale=int(disp_cfg.get("emulator_scale", 6)),
+            transform=str(disp_cfg.get("emulator_transform", "none")),
+            frame_rate=60,
+        )
 
     if kind == "real":
         from luma.core.interface.serial import i2c  # type: ignore

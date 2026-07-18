@@ -74,6 +74,7 @@ display:
   height: 64
   rotate: 0             # 0/1/2/3 = 0/90/180/270 degrees
   simulate_dir: "./frames"   # where --display simulate writes PNGs
+  emulator_scale: 6     # --display emulator: pixel zoom of the preview window
 
   # --- timing / animation ---
   dwell_seconds: 8         # how long each page is shown
