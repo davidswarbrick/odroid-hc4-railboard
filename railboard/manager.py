@@ -145,6 +145,23 @@ class ScreenManager:
                 )
                 entries.append((journey, dep))
             return screens.render_combo(size, self.fonts, entries, now, self._tick, self.fps)
+        if kind == "summary":
+            entries = []
+            for jid in arg.split(","):
+                journey = self.cfg.journey(jid.strip())
+                if not journey:
+                    continue
+                board = self.store.get(journey["origin"]).board
+                matches = (
+                    filter_to_target(board.departures, journey["target"], journey.get("match", "any"))
+                    if board else []
+                )
+                deps = (matches[:2] + [None, None])[:2]
+                entries.append((journey, deps))
+            show_clock = bool(self.cfg["display"].get("summary_clock", False))
+            return screens.render_summary(
+                size, self.fonts, entries, now, self._tick, self.fps, show_clock=show_clock
+            )
 
         # Unknown spec: show it so the misconfiguration is visible.
         return screens.render_board(size, self.fonts, None, f"?{spec}", now, self._tick, self.fps)

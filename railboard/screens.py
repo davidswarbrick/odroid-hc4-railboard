@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from . import sysinfo
 from .api import Board, Departure
 from .display import load_font
-from .journeys import countdown_text
+from .journeys import countdown_text, minutes_until
 
 # Right-edge padding so right-aligned text (clock, status, platform) never gets
 # shaved by the content-image boundary or the panel's physical right edge.
@@ -27,6 +27,7 @@ class Fonts:
         self.small = load_font(path, int(disp_cfg.get("font_size", 10)))
         self.header = load_font(path, int(disp_cfg.get("header_font_size", 11)))
         self.big = load_font(path, int(disp_cfg.get("big_font_size", 20)))
+        self.huge = load_font(path, int(disp_cfg.get("huge_font_size", 24)))
 
 
 # ---- low-level text helpers ------------------------------------------------
@@ -266,6 +267,67 @@ def render_combo(
         draw.text((w - cdw - EDGE, y), cd, font=fonts.header, fill=255)
         mid = f"{dep.expected} {('P'+dep.platform) if dep.platform else ''}".strip()
         _hscroll(img, draw, keyw, y, mid, fonts.small, w - keyw - cdw - EDGE - 4, tick, fps)
+    return img
+
+
+def _mins(dep: Departure | None, now: datetime) -> str | None:
+    if dep is None:
+        return None
+    if dep.cancelled or dep.status == "Cancelled":
+        return "x"
+    m = minutes_until(dep.expected, now)
+    if m is None:
+        return "?"
+    return "due" if m <= 0 else str(m)
+
+
+def render_summary(
+    size, fonts: Fonts, entries: list[tuple[dict, list[Departure | None]]],
+    now: datetime, tick: int, fps: int, show_clock: bool = False,
+) -> Image.Image:
+    """One large row per journey. Left column stacks the destination label over the
+    platforms; the right fills with the next-two countdowns in minutes, as large as
+    fits (e.g. 'Liv St / P1 P3   5, 8')."""
+    img, draw = _new_frame(size)
+    w, h = size
+    n = max(1, len(entries))
+    rh = h // n
+    lh_s = _line_h(fonts.small)
+
+    if show_clock:
+        clk = _clock(now)
+        cw = _text_w(draw, clk, fonts.small)
+        draw.text((w - cw - EDGE, 0), clk, font=fonts.small, fill=255)
+
+    for i, (journey, deps) in enumerate(entries):
+        y0 = i * rh
+        short = journey.get("short") or journey.get("target_name") or journey.get("target", "?")
+        nums = [m for m in (_mins(d, now) for d in deps) if m is not None]
+        big = ", ".join(nums) if nums else "--"
+        plats = " ".join(f"P{d.platform}" for d in deps if d and d.platform)
+
+        # Left column: label over platforms, both small.
+        label = _truncate(draw, short, fonts.small, 56)
+        plabel = _truncate(draw, plats, fonts.small, 56)
+        draw.text((0, y0 + 1), label, font=fonts.small, fill=255)
+        draw.text((0, y0 + 1 + lh_s), plabel, font=fonts.small, fill=255)
+        left_w = max(_text_w(draw, label, fonts.small), _text_w(draw, plabel, fonts.small))
+
+        # Big minutes on the right, largest tier that fits the remaining width.
+        clk_w = (_text_w(draw, _clock(now), fonts.small) + 4) if (show_clock and i == 0) else 0
+        bx = left_w + 8
+        avail = max(8, (w - EDGE - clk_w) - bx)
+        bfont = fonts.small
+        for cand in (fonts.huge, fonts.big, fonts.header, fonts.small):
+            if _text_w(draw, big, cand) <= avail:
+                bfont = cand
+                break
+        lh_b = _line_h(bfont)
+        by = y0 + (rh - lh_b) // 2
+        draw.text((bx, by), big, font=bfont, fill=255)
+
+    if n > 1:
+        draw.line((0, rh, w, rh), fill=255)
     return img
 
 

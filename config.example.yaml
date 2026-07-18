@@ -32,19 +32,22 @@ stations:
 #        "destination" = only trains terminating at the target.
 journeys:
   - id: a_to_x
-    title: "A → Destination X"     # short label shown on the page
+    title: "A → Destination X"     # header label on the `next` page
+    short: "Dest X"                # compact label for the `summary` page
     origin: AAA                    # must be a station CRS above
     target: XXX                    # destination/interchange CRS
-    target_name: "Destination X"   # full name for the "calling at" line
+    target_name: "Destination X"   # full name (used in the "no service" message)
     match: any
   - id: b_to_y
     title: "B → Destination Y"
+    short: "Dest Y"
     origin: BBB
     target: YYY
     target_name: "Destination Y"
     match: any
 
 # Ordered rotation. Each entry is one page. Comment/reorder to taste.
+#   summary:<id>,<id>     one big row per journey: next 2 countdowns (min) + platforms
 #   bigboard:<CRS>        LARGE single-station view, cycles through next departures
 #                         (most readable from across a room)
 #   board:<CRS>           packed full board for a station (smaller text, more trains)
@@ -56,6 +59,7 @@ journeys:
 # large `bigboard` and `next` pages, and keep the packed `board` pages for when
 # you want the whole list at once.
 pages:
+  - summary:a_to_x,b_to_y
   - bigboard:AAA
   - bigboard:BBB
   - next:a_to_x
@@ -92,6 +96,8 @@ display:
   font_size: 10
   header_font_size: 11
   big_font_size: 16     # countdown on next-train pages, hero time on bigboard
+  huge_font_size: 24    # the minutes on the `summary` page
+  summary_clock: false  # squeeze a small clock onto the summary page (shrinks row 1)
 
 burn_in:
   orbit: true           # shift whole image within +/- orbit_max px each cycle
