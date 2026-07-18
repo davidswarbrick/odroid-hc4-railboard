@@ -14,6 +14,10 @@ from .api import Board, Departure
 from .display import load_font
 from .journeys import countdown_text
 
+# Right-edge padding so right-aligned text (clock, status, platform) never gets
+# shaved by the content-image boundary or the panel's physical right edge.
+EDGE = 3
+
 
 class Fonts:
     """Font set built once from the display config."""
@@ -92,8 +96,8 @@ def _header(draw, img, size, fonts, left: str, now, tick, fps) -> int:
     w, _ = size
     clock = _clock(now)
     cw = _text_w(draw, clock, fonts.header)
-    draw.text((w - cw, 0), clock, font=fonts.header, fill=255)
-    _hscroll(img, draw, 0, 0, left, fonts.header, w - cw - 4, tick, fps)
+    draw.text((w - cw - EDGE, 0), clock, font=fonts.header, fill=255)
+    _hscroll(img, draw, 0, 0, left, fonts.header, w - cw - EDGE - 4, tick, fps)
     hy = _line_h(fonts.header)
     draw.line((0, hy, w, hy), fill=255)
     return hy + 1
@@ -140,9 +144,9 @@ def render_board(
         sw = _text_w(draw, status, fonts.small)
         draw.text((0, y), time_s, font=fonts.small, fill=255)
         # right-align status; invert cancelled/delayed for emphasis
-        sx = w - sw
+        sx = w - sw - EDGE
         if dep.status == "Cancelled" or dep.status == "Delayed":
-            draw.rectangle((sx - 1, y, w, y + row_h - 2), fill=255)
+            draw.rectangle((sx - 1, y, w - 1, y + row_h - 2), fill=255)
             draw.text((sx, y), status, font=fonts.small, fill=0)
         else:
             draw.text((sx, y), status, font=fonts.small, fill=255)
@@ -183,7 +187,7 @@ def render_bigboard(
     if dep.platform:
         plat = f"P{dep.platform}"
         pw = _text_w(draw, plat, fonts.header)
-        draw.text((w - pw, y + (big_h - dest_h)), plat, font=fonts.header, fill=255)
+        draw.text((w - pw - EDGE, y + (big_h - dest_h)), plat, font=fonts.header, fill=255)
     y += big_h
 
     # Destination, medium weight, scrolls if long.
@@ -194,8 +198,8 @@ def render_bigboard(
     foot = f"{_status_text(dep)} · {countdown_text(dep, now)}"
     pos = f"{idx + 1}/{len(deps)}"
     pw = _text_w(draw, pos, fonts.small)
-    draw.text((w - pw, y), pos, font=fonts.small, fill=255)
-    _hscroll(img, draw, 0, y, foot, fonts.small, w - pw - 3, tick, fps)
+    draw.text((w - pw - EDGE, y), pos, font=fonts.small, fill=255)
+    _hscroll(img, draw, 0, y, foot, fonts.small, w - pw - EDGE - 3, tick, fps)
     return img
 
 
@@ -260,9 +264,9 @@ def render_combo(
             continue
         cd = countdown_text(dep, now)
         cdw = _text_w(draw, cd, fonts.header)
-        draw.text((w - cdw, y), cd, font=fonts.header, fill=255)
+        draw.text((w - cdw - EDGE, y), cd, font=fonts.header, fill=255)
         mid = f"{dep.expected} {('P'+dep.platform) if dep.platform else ''}".strip()
-        _hscroll(img, draw, keyw, y, mid, fonts.small, w - keyw - cdw - 4, tick, fps)
+        _hscroll(img, draw, keyw, y, mid, fonts.small, w - keyw - cdw - EDGE - 4, tick, fps)
     return img
 
 
