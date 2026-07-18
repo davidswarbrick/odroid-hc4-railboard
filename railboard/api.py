@@ -13,6 +13,12 @@ from typing import Any
 
 import requests
 
+from . import __version__
+
+# The Rail Data Marketplace edge WAF rejects the default python-requests
+# User-Agent with an HTML 403, so send a real one.
+USER_AGENT = f"railboard/{__version__} (+https://github.com/davidswarbrick/odroid-hc4-railboard)"
+
 
 class ApiError(RuntimeError):
     """Raised for any failure fetching or parsing a board (network, auth, shape)."""
@@ -86,7 +92,7 @@ def fetch_board(cfg_api: dict[str, Any], api_key: str, crs: str) -> Board:
     if not api_key:
         raise ApiError("no API key set (export RDM_API_KEY)")
     url = build_url(cfg_api, crs)
-    headers = {"x-apikey": api_key, "Accept": "application/json"}
+    headers = {"x-apikey": api_key, "Accept": "application/json", "User-Agent": USER_AGENT}
     params = {"numRows": cfg_api.get("num_rows", 10)}
     try:
         resp = requests.get(

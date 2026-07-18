@@ -7,7 +7,7 @@ api:
   # IMPORTANT: copy this exact prefix from your Rail Data Marketplace
   # subscription's "Specification" tab — it varies per subscription/version.
   # e.g. "1010-live-departure-board-dep" or "...-dep1_2".
-  product_prefix: "1010-live-departure-board-dep"
+  product_prefix: "1010-live-departure-board-dep1_2"
   operation: "GetDepBoardWithDetails"   # has calling points; needed for journey filtering
   version: "20220120"
   num_rows: 12          # how many services to request per station

@@ -15,7 +15,7 @@ import yaml
 DEFAULTS: dict[str, Any] = {
     "api": {
         "base_url": "https://api1.raildata.org.uk",
-        "product_prefix": "1010-live-departure-board-dep",
+        "product_prefix": "1010-live-departure-board-dep1_2",
         "operation": "GetDepBoardWithDetails",
         "version": "20220120",
         "num_rows": 12,
