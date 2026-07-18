@@ -16,7 +16,7 @@ from . import screens, sysinfo
 from .api import ApiError, Board, fetch_board
 from .config import Config
 from .display import Display
-from .journeys import next_service_to
+from .journeys import filter_to_target, next_service_to
 
 log = logging.getLogger("railboard")
 
@@ -121,12 +121,16 @@ class ScreenManager:
             if not journey:
                 return screens.render_board(size, self.fonts, None, arg, now, self._tick, self.fps)
             entry = self.store.get(journey["origin"])
-            dep = None
+            dep = following = None
             if entry.board is not None:
-                dep = next_service_to(entry.board.departures, journey["target"], journey.get("match", "any"))
+                matches = filter_to_target(
+                    entry.board.departures, journey["target"], journey.get("match", "any")
+                )
+                dep = matches[0] if matches else None
+                following = matches[1] if len(matches) > 1 else None
             return screens.render_next_train(
                 size, self.fonts, journey, dep, now, self._tick, self.fps,
-                have_data=entry.board is not None,
+                have_data=entry.board is not None, following=following,
             )
         if kind == "combo":
             entries = []

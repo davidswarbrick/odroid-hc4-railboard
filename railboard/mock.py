@@ -52,26 +52,28 @@ def mock_board(cfg: Config, crs: str, now: datetime) -> Board:
             )
         )
 
-    # Guarantee each journey from this origin has a matching service.
+    # Guarantee each journey from this origin has a couple of matching services
+    # (so the "next train" page can show the one after it too).
     for j in cfg.get("journeys", []):
         if j.get("origin") != crs:
             continue
         target = j["target"]
         tname = j.get("target_name", target)
-        deps.append(
-            Departure(
-                std=_hhmm(now, 6),
-                etd="On time",
-                destination=tname,
-                destination_crs=target,
-                platform="2",
-                operator="Demo Trains",
-                calling_points=[
-                    CallingPoint("Firststop", "FST", _hhmm(now, 9), "On time"),
-                    CallingPoint(tname, target, _hhmm(now, 14), "On time"),
-                ],
+        for off in (6, 19):
+            deps.append(
+                Departure(
+                    std=_hhmm(now, off),
+                    etd="On time",
+                    destination=tname,
+                    destination_crs=target,
+                    platform="2",
+                    operator="Demo Trains",
+                    calling_points=[
+                        CallingPoint("Firststop", "FST", _hhmm(now, off + 3), "On time"),
+                        CallingPoint(tname, target, _hhmm(now, off + 8), "On time"),
+                    ],
+                )
             )
-        )
 
     deps.sort(key=lambda d: d.std)
     return Board(

@@ -206,6 +206,7 @@ def render_bigboard(
 def render_next_train(
     size, fonts: Fonts, journey: dict, dep: Departure | None,
     now: datetime, tick: int, fps: int, have_data: bool = True,
+    following: Departure | None = None,
 ) -> Image.Image:
     img, draw = _new_frame(size)
     w, h = size
@@ -219,11 +220,10 @@ def render_next_train(
                 y=top + 4 + _line_h(fonts.header))
         return img
 
-    # Bottom-anchor the two info lines; the big countdown fills the space above.
+    # Bottom-anchor two info lines; the big countdown fills the space above.
     small_h = _line_h(fonts.small)
-    has_calls = bool(dep.calling_points)
-    call_y = h - small_h if has_calls else h
-    detail_y = call_y - small_h
+    then_y = h - small_h
+    detail_y = then_y - small_h
 
     cd = countdown_text(dep, now)
     bw = _text_w(draw, cd, fonts.big)
@@ -231,18 +231,17 @@ def render_next_train(
     cy = top + max(0, (detail_y - top - big_h) // 2)
     draw.text(((w - bw) // 2, cy), cd, font=fonts.big, fill=255)
 
-    # time / platform / status line
+    # time / platform / status of the next train
     plat = f"P{dep.platform}" if dep.platform else "P-"
     detail = f"{dep.expected}  {plat}  {_status_text(dep)}"
     _center(draw, size, _truncate(draw, detail, fonts.small, w - 2), fonts.small, y=detail_y)
 
-    # calling at ... (scrolls)
-    if has_calls:
-        names = ", ".join(cp.name for cp in dep.calling_points if cp.name)
-        prefix = "calls: "
-        pw = _text_w(draw, prefix, fonts.small)
-        draw.text((0, call_y), prefix, font=fonts.small, fill=255)
-        _hscroll(img, draw, pw, call_y, names, fonts.small, w - pw, tick, fps)
+    # the train after this one — so a missed train has an obvious fallback
+    if following is not None:
+        then = f"then {following.expected} · {countdown_text(following, now)}"
+    else:
+        then = "no later train"
+    _center(draw, size, _truncate(draw, then, fonts.small, w - 2), fonts.small, y=then_y)
     return img
 
 
