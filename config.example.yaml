@@ -1,0 +1,96 @@
+# railboard configuration.
+# Copy to config.yaml and edit. The API key is NOT stored here — set it in the
+# environment as RDM_API_KEY (see railboard.service / README).
+
+api:
+  base_url: "https://api1.raildata.org.uk"
+  # IMPORTANT: copy this exact prefix from your Rail Data Marketplace
+  # subscription's "Specification" tab — it varies per subscription/version.
+  # e.g. "1010-live-departure-board-dep" or "...-dep1_2".
+  product_prefix: "1010-live-departure-board-dep"
+  operation: "GetDepBoardWithDetails"   # has calling points; needed for journey filtering
+  version: "20220120"
+  num_rows: 12          # how many services to request per station
+  timeout: 10           # seconds per HTTP request
+
+# How often to poll the API per station (seconds). 60s => 2 req/min total.
+refresh_seconds: 60
+
+# The stations whose boards you want to show.
+# CRS = the 3-letter National Rail station code. Look yours up at
+#   https://www.nationalrail.co.uk/stations_destinations/48541.aspx
+#   or http://www.railwaycodes.org.uk/crs/crs0.shtm
+stations:
+  - crs: AAA          # <-- replace with your origin station's CRS
+    name: "Station A"
+  - crs: BBB          # <-- replace with your second station's CRS
+    name: "Station B"
+
+# Named journeys used by the "next train" and combo pages: the next train from
+# `origin` that reaches `target`.
+# match: "any" = destination OR a calling point is the target (what you'd board);
+#        "destination" = only trains terminating at the target.
+journeys:
+  - id: a_to_x
+    title: "A → Destination X"     # short label shown on the page
+    origin: AAA                    # must be a station CRS above
+    target: XXX                    # destination/interchange CRS
+    target_name: "Destination X"   # full name for the "calling at" line
+    match: any
+  - id: b_to_y
+    title: "B → Destination Y"
+    origin: BBB
+    target: YYY
+    target_name: "Destination Y"
+    match: any
+
+# Ordered rotation. Each entry is one page. Comment/reorder to taste.
+#   board:<CRS>            full departure board for a station
+#   health                system / disk health screen
+#   next:<journey id>     platform-mirror of the next matching train
+#   combo:<id>,<id>       two journeys' next trains on one page
+pages:
+  - board:AAA
+  - board:BBB
+  - health
+  - next:a_to_x
+  - next:b_to_y
+  # - combo:a_to_x,b_to_y            # optional 6th page
+
+display:
+  # --- panel / wiring ---
+  driver: ssd1306       # ssd1306 or sh1106
+  i2c_port: 1           # /dev/i2c-N (usually 1)
+  i2c_address: 0x3c     # run `i2cdetect -y 1` to confirm (often 0x3c or 0x3d)
+  width: 128
+  height: 64
+  rotate: 0             # 0/1/2/3 = 0/90/180/270 degrees
+  simulate_dir: "./frames"   # where --display simulate writes PNGs
+
+  # --- timing / animation ---
+  dwell_seconds: 8      # how long each page is shown
+  fps: 10               # render/animation frames per second (scrolling smoothness)
+  # Path to a TTF for the dot-matrix look. Empty => Pillow's built-in bitmap font.
+  # Good options: a 5x7/pixel font, or "Dot Matrix"/"Px437"/pixel TTFs. See README.
+  font_path: ""
+  font_size: 10
+  header_font_size: 11
+  big_font_size: 16     # used for the countdown on next-train pages
+
+burn_in:
+  orbit: true           # shift whole image within +/- orbit_max px each cycle
+  orbit_max: 3
+  invert_minutes: 0     # >0 => flip black/white every N minutes (0 = off)
+  contrast_day: 255     # 0-255
+  contrast_night: 40
+
+quiet_hours:
+  enabled: true
+  start: "01:00"
+  end: "06:30"
+  action: dim           # "dim" (contrast_night) or "blank" (turn panel off)
+
+# Filesystems shown on the health page (label: path). Adjust to your mounts.
+disk_paths:
+  root: "/"
+  data: "/mnt/data"

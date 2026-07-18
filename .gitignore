@@ -1,0 +1,22 @@
+# Local configuration (holds your stations/journeys; may reference secrets)
+config.yaml
+
+# Secrets
+.env
+
+# Simulate-mode output
+frames/
+*.png
+
+# Claude Code local state (worktrees, session settings)
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/

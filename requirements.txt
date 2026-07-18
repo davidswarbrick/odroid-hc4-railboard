@@ -1,0 +1,17 @@
+# Core
+requests>=2.31
+PyYAML>=6.0
+Pillow>=10.0
+
+# OLED hardware driver (SSD1306 / SH1106 over I2C on the HC4).
+# Pulls in luma.core. Only needed when driving real hardware.
+luma.oled>=3.12
+
+# System stats for the health page. Optional: sysinfo.py degrades
+# gracefully to stdlib (shutil/os) if psutil is missing.
+psutil>=5.9
+
+# Local preview without hardware (--display emulator). Optional.
+# Needs pygame for the live window; the "capture"/"gifanim" backends
+# only need Pillow. Install with:  pip install luma.emulator
+# luma.emulator>=1.5

@@ -1,0 +1,21 @@
+[Unit]
+Description=railboard OLED train departure board
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Edit User and the paths below to match your install.
+User=david
+WorkingDirectory=/home/david/railboard
+Environment=PYTHONUNBUFFERED=1
+# Put RDM_API_KEY=your_consumer_key in this file (see README). The leading '-'
+# means systemd won't fail if it's missing (e.g. when using --mock).
+EnvironmentFile=-/home/david/railboard/.env
+ExecStart=/home/david/railboard/.venv/bin/python -m railboard \
+    --config /home/david/railboard/config.yaml --display real
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
