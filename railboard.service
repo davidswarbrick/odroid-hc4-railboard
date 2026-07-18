@@ -3,17 +3,19 @@ Description=railboard OLED train departure board
 After=network-online.target
 Wants=network-online.target
 
+# This is a TEMPLATE. install.sh fills in @USER@/@RAILBOARD@/@CONF@/@ENV@ and
+# writes the result to /etc/systemd/system/railboard.service. To install by hand,
+# replace the @...@ placeholders yourself.
+
 [Service]
 Type=simple
-# Edit User and the paths below to match your install.
-User=david
-WorkingDirectory=/home/david/railboard
+User=@USER@
+# Grant /dev/i2c-* access without running as root (the i2c group owns the device).
+SupplementaryGroups=i2c
 Environment=PYTHONUNBUFFERED=1
-# Put RDM_API_KEY=your_consumer_key in this file (see README). The leading '-'
-# means systemd won't fail if it's missing (e.g. when using --mock).
-EnvironmentFile=-/home/david/railboard/.env
-ExecStart=/home/david/railboard/.venv/bin/python -m railboard \
-    --config /home/david/railboard/config.yaml --display real
+# Put RDM_API_KEY=your_consumer_key in this file. '-' => don't fail if missing.
+EnvironmentFile=-@ENV@
+ExecStart=@RAILBOARD@ --config @CONF@ --display real
 Restart=always
 RestartSec=5
 

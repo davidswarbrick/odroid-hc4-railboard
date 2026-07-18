@@ -1,0 +1,29 @@
+[project]
+name = "railboard"
+version = "0.1.0"
+description = "Live UK train departure board for a small I2C OLED (built for an Odroid HC4)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "David Swarbrick" }]
+dependencies = [
+    "requests>=2.31",
+    "PyYAML>=6.0",
+    "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+# On the machine wired to the OLED (the HC4):
+hardware = ["luma.oled>=3.12", "psutil>=5.9"]
+# Desktop preview window:
+emulator = ["luma.emulator>=1.5"]
+
+[project.scripts]
+railboard = "railboard.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["railboard"]

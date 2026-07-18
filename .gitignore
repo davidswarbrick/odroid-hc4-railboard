@@ -6,7 +6,10 @@ config.yaml
 
 # Simulate-mode output
 frames/
+preview/
 *.png
+# ...except committed documentation screenshots
+!examples/*.png
 
 # Claude Code local state (worktrees, session settings)
 .claude/

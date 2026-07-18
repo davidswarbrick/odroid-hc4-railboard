@@ -50,7 +50,9 @@ DEFAULTS: dict[str, Any] = {
         "end": "06:30",
         "action": "dim",
     },
-    "disk_paths": {"root": "/"},
+    # Empty so a user-provided disk_paths fully replaces it (dicts deep-merge);
+    # sysinfo falls back to {"root": "/"} when none are configured.
+    "disk_paths": {},
 }
 
 
